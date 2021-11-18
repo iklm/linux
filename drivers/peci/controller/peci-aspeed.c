@@ -227,8 +227,6 @@ static int aspeed_peci_xfer(struct peci_controller *controller,
 
 	spin_lock_irq(&priv->lock);
 
-	writel(0, priv->base + ASPEED_PECI_CMD);
-
 	if (priv->status != ASPEED_PECI_INT_CMD_DONE) {
 		spin_unlock_irq(&priv->lock);
 		dev_dbg(priv->dev, "No valid response, status: %#02x\n", priv->status);
@@ -264,6 +262,8 @@ static irqreturn_t aspeed_peci_irq_handler(int irq, void *arg)
 	 */
 	if (status & ASPEED_PECI_INT_CMD_DONE)
 		complete(&priv->xfer_complete);
+
+	writel(0, priv->base + ASPEED_PECI_CMD);
 
 	spin_unlock(&priv->lock);
 

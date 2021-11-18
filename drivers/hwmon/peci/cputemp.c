@@ -35,7 +35,7 @@ struct resolved_cores_reg {
 struct cpu_info {
 	struct resolved_cores_reg *reg;
 	u8 min_peci_revision;
-	s32 (*thermal_margin_to_millidegree)(s32 val);
+	s32 (*thermal_margin_to_millidegree)(u16 val);
 };
 
 struct peci_temp_target {
@@ -152,7 +152,7 @@ unlock:
  *   0x8002: Underflow on reading value
  *   0x8003-0x81ff: Reserved
  */
-static bool dts_valid(s32 val)
+static bool dts_valid(u16 val)
 {
 	return val < 0x8000 || val > 0x81ff;
 }
@@ -161,7 +161,7 @@ static bool dts_valid(s32 val)
  * Processors return a value of DTS reading in S10.6 fixed point format
  * (16 bits: 10-bit signed magnitude, 6-bit fraction).
  */
-static s32 dts_ten_dot_six_to_millidegree(s32 val)
+static s32 dts_ten_dot_six_to_millidegree(u16 val)
 {
 	return sign_extend32(val, 15) * MILLIDEGREE_PER_DEGREE / 64;
 }
@@ -170,7 +170,7 @@ static s32 dts_ten_dot_six_to_millidegree(s32 val)
  * For older processors, thermal margin reading is returned in S8.8 fixed
  * point format (16 bits: 8-bit signed magnitude, 8-bit fraction).
  */
-static s32 dts_eight_dot_eight_to_millidegree(s32 val)
+static s32 dts_eight_dot_eight_to_millidegree(u16 val)
 {
 	return sign_extend32(val, 15) * MILLIDEGREE_PER_DEGREE / 256;
 }
@@ -179,7 +179,7 @@ static int get_die_temp(struct peci_cputemp *priv, long *val)
 {
 	int ret = 0;
 	long tjmax;
-	s16 temp;
+	u16 temp;
 
 	mutex_lock(&priv->temp.die.state.lock);
 	if (!peci_sensor_need_update(&priv->temp.die.state))
@@ -212,7 +212,7 @@ err_unlock:
 static int get_dts(struct peci_cputemp *priv, long *val)
 {
 	int ret = 0;
-	s32 thermal_margin;
+	u16 thermal_margin;
 	long tcontrol;
 	u32 pcs;
 
@@ -250,7 +250,7 @@ err_unlock:
 static int get_core_temp(struct peci_cputemp *priv, int core_index, long *val)
 {
 	int ret = 0;
-	s32 core_dts_margin;
+	u16 core_dts_margin;
 	long tjmax;
 	u32 pcs;
 
